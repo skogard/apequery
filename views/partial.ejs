@@ -1,0 +1,18 @@
+<% items.forEach((item) => { %>
+  <div class='row'>
+    <img src="<%=item.metadata.image%>">
+    <div class='col'>
+      <% if (item.metadata.attributes) { %>
+        <a class='title' href="/token/<%=item.id%>"><%=item.id%></a>
+        <table>
+        <% [...item.metadata.attributes].sort((a, b) => { return a.trait_type > b.trait_type  ? 1 : -1 }).forEach((attr) => { %>
+          <tr data-attr="<%=JSON.stringify(attr)%>">
+            <td><%=attr.trait_type%></td>
+            <td><%=attr.value%></td>
+          </tr>
+        <% }) %>
+        </table>
+      <% } %>
+    </div>
+  </div>
+<% }) %>

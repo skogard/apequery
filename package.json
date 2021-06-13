@@ -1,0 +1,17 @@
+{
+  "name": "apequery",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sync": "git clone https://github.com/skogard/apebase.git public/apebase",
+    "start": "node index"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "nedb": "^1.8.0"
+  }
+}

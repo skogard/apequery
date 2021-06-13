@@ -1,0 +1,195 @@
+<html>
+<head>
+<title>Apebase</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Apebase" />
+<meta name="twitter:description" content="Bored Ape Database" />
+<meta name="twitter:image" content="https://ape.offbase.org/apebase.png" />
+<meta property="og:url" content="https://ape.offbase.org" />
+<meta property="og:type"   content="website" />
+<meta property="og:title" content="Apebase" />
+<meta property="og:description" content="Bored Ape Database" />
+<meta property="og:image" content="https://ape.offbase.org/apebase.png" />
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,900;1,600;1,900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+body {
+  margin: 0;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  background: rgba(0,0,0,0.95);
+  background: black;
+}
+nav {
+  color: white;
+  padding: 50px;
+  text-align: center;
+}
+.stretch {
+  flex-grow: 1;
+}
+nav h1 {
+  padding: 10px;
+}
+nav h1 a {
+  display: block;
+}
+h1,h2, .title {
+  text-transform: uppercase;
+  font-family: "Montserrat", sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  padding: 10px 5px 0;
+  margin: 0;
+  color: #bfc500;
+  font-weight: bold;
+  font-size: 21px;
+  display: inline-block;
+}
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 5px;
+}
+.editor {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 10px;
+}
+#query {
+  background: #bfc500;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  margin: 10px 0 0;
+  border: none;
+  color: black;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: bold;
+}
+.container {
+  flex-grow: 1;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-rows: masonry;
+  margin: 10px;
+}
+.row img {
+  width: 100%;
+}
+a.tx {
+  color: white;
+  display: block;
+  padding: 5px;
+}
+td {
+  padding: 5px 2px;
+  font-size: 12px;
+  cursor: pointer;
+  color: white;
+  vertical-align: top;
+  font-family: Menlo, monaco, courier, monospace;
+  letter-spacing: -1px;
+}
+tr:hover td {
+  background: #bfc500;
+  color: black;
+}
+pre {
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+img.logo {
+  width: 200px;
+}
+.buttons {
+  padding: 20px;
+}
+.buttons a {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin: 10px;
+  font-weight: 900;
+  display: inline-block;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+<nav>
+  <h1><a href="/"><img class='logo' src="/bayc.png"><div>Apebase</div></a></h1>
+  <div>The Entire Bored Ape Yacht Club Universe in a single Git repository.</div>
+  <div class='stretch'></div>
+  <div class='buttons'>
+    <a href="https://github.com/skogard/apebase">Download</a>
+    <a href="https://twitter.com/skogard">Twitter</a>
+  </div>
+</nav>
+<div class='flex'>
+  <div class='editor'>
+    <div id='editor'><%=query%></div>
+    <button id='query'>Filter</button>
+  </div>
+  <div class='container'>
+  <%- include('partial.ejs') %>
+  </div>
+</div>
+<script>
+var page = 0;
+var ended = false;
+var loading = false;
+const next = async () => {
+  if (!ended) {
+    loading = true;
+    let val = editor.getValue()
+    let res = await fetch("/?filter=" + encodeURIComponent(val) + "&page=" + (++page)).then((res) => {
+      return res.text()
+    })
+    loading = false;
+    if (res.trim().length === 0) {
+      ended = true;
+    } else {
+      document.querySelector(".container").insertAdjacentHTML("beforeend", res)
+    }
+  }
+}
+window.addEventListener('scroll', () => {
+  if(!loading && window.innerHeight+window.scrollY>=document.body.offsetHeight-200) next()
+});
+document.addEventListener("click", (e) => {
+  let val = editor.getValue()
+  if (e.target.id === "query") {
+    location.href = "/?filter=" + encodeURIComponent(val)
+  } else {
+    let closest = e.target.closest("tr")
+    if (closest) {
+      let attr = closest.getAttribute("data-attr")
+      if (attr) {
+        let a = JSON.parse(attr)
+        let query = { "metadata.attributes": { $elemMatch: a } }
+        let existingQuery = JSON.parse(val)
+        if (existingQuery["$and"]) existingQuery["$and"].push(query)
+        else existingQuery = { $and: [query] }
+        let queryStr = JSON.stringify(existingQuery, null, 2)
+        editor.setValue(queryStr)
+        location.href = "/?filter=" + encodeURIComponent(queryStr)
+      }
+    }
+  }
+})
+var editor = ace.edit("editor");
+editor.session.setMode("ace/mode/json");
+editor.setTheme("ace/theme/gob");
+editor.setOptions({ maxLines: Infinity });
+editor.setOptions({ fontFamily: "menlo", fontSize: "12px", });
+</script>
+</body>
+</html>

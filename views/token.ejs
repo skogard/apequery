@@ -1,0 +1,154 @@
+<html>
+<head>
+<title>Apebase</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Ape <%=item.id%>" />
+<meta name="twitter:description" content="Bored Ape Database" />
+<meta name="twitter:image" content="https://ipfs.io/ipfs/<%=item.metadata.image%>" />
+<meta property="og:url" content="https://ape.offbase.org" />
+<meta property="og:type"   content="website" />
+<meta property="og:title" content="Ape <%=item.id%>" />
+<meta property="og:description" content="Bored Ape Database" />
+<meta property="og:image" content="https://ipfs.io/ipfs/<%=item.metadata.image%>" />
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;1,600;1,900&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  background: rgba(0,0,0,0.95);
+}
+nav {
+  color: white;
+  padding: 50px;
+  text-align: center;
+}
+.stretch {
+  flex-grow: 1;
+}
+nav h1 {
+  padding: 10px;
+}
+nav h1 a {
+  display: block;
+}
+h1,h2, .title {
+  text-transform: uppercase;
+  font-family: "Montserrat", sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  padding: 10px 5px 0;
+  margin: 0;
+  color: #bfc500;
+  font-weight: bold;
+  font-size: 20px;
+  display: inline-block;
+}
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 5px;
+}
+.editor {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 10px;
+}
+#query {
+  background: #bfc500;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  margin: 10px 0 0;
+  border: none;
+  color: black;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: bold;
+}
+.container {
+  max-width: 500px;
+  margin: 10px auto;
+}
+.row img {
+  width: 100%;
+}
+a.tx {
+  color: white;
+  display: block;
+  padding: 5px;
+}
+td {
+  padding: 5px 2px;
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
+  vertical-align: top;
+}
+tr:hover td {
+  background: #bfc500;
+  color: black;
+}
+pre {
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+img.logo {
+  width: 200px;
+}
+.buttons {
+  padding: 20px;
+  font-family: Menlo, monaco, Courier;
+}
+</style>
+</head>
+<body>
+<nav>
+  <h1><a href="/"><img class='logo' src="/bayc.png"><div>Apebase</div></a></h1>
+  <div>Bored Ape Database</div>
+  <div class='stretch'></div>
+  <div class='buttons'>
+    <a href="/db">Download</a>
+    <a href="https://github.com/skogard/bad b">GitHub</a>
+    <a href="https://twitter.com/skogard">Twitter</a>
+  </div>
+</nav>
+<div class='flex'>
+  <div class='container'>
+    <div class='row'>
+      <img src="<%=item.metadata.image%>">
+      <div class='col'>
+        <% if (item.metadata.attributes) { %>
+          <div class='title'><%=item.id%></div>
+          <table>
+          <% [...item.metadata.attributes].sort((a, b) => { return a.trait_type > b.trait_type  ? 1 : -1 }).forEach((attr) => { %>
+            <tr data-attr="<%=JSON.stringify(attr)%>">
+              <td><%=attr.trait_type%></td>
+              <td><%=attr.value%></td>
+            </tr>
+          <% }) %>
+          </table>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("click", (e) => {
+  let closest = e.target.closest("tr")
+  if (closest) {
+    let attr = closest.getAttribute("data-attr")
+    if (attr) {
+      let a = JSON.parse(attr)
+      let query = { "$and": [{ "metadata.attributes": { $elemMatch: a } }] }
+      let queryStr = JSON.stringify(query, null, 2)
+      location.href = "/?filter=" + encodeURIComponent(queryStr)
+    }
+  }
+})
+</script>
+</body>
+</html>
